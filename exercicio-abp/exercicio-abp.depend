@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1675884619 source:c:\users\aluno\desktop\exercicio-abp\funcoes.c
+	<stdio.h>
+	<stdlib.h>
+	"tad.h"
+
+1675884581 c:\users\aluno\desktop\exercicio-abp\tad.h
+
+1675884681 source:c:\users\aluno\desktop\exercicio-abp\main.c
+	<stdio.h>
+	"tad.h"
+
+1675882514 c:\users\aluno\desktop\exercicio-abp\funcoes.c
+	<stdio.h>
+	<stdlib.h>
+	"tad.h"
+
