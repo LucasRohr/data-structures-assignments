@@ -1,0 +1,12 @@
+# depslib dependency file v1.0
+1676488507 source:c:\users\aluno\documents\estrut\ex-fator\main.c
+	<stdio.h>
+	"tad.h"
+
+1676487327 c:\users\aluno\documents\estrut\ex-fator\tad.h
+
+1676489620 source:c:\users\aluno\documents\estrut\ex-fator\funcoes.c
+	<stdio.h>
+	<stdlib.h>
+	"tad.h"
+
