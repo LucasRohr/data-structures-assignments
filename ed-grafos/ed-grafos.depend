@@ -1,0 +1,14 @@
+# depslib dependency file v1.0
+1678910199 source:c:\codeblocks\ed-grafos\funcoes.c
+	<stdio.h>
+	<stdlib.h>
+	"tad.h"
+
+1678910032 c:\codeblocks\ed-grafos\tad.h
+
+1678908429 source:c:\codeblocks\ed-grafos\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"tad.h"
+
