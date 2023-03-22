@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+
 #include "tad.h"
 #include "tad-arquivos.h"
 
@@ -7,7 +11,11 @@
 
 #define ARQUIVO_STOPWORDS "stopwords.txt"
 
+
 // == Funcoes de LSE ==
+
+// Usadas para manipular listas com encadeamento simples
+
 
 // Retorna valor default NULL como inicializador de um No
 TipoPtNo* inicializaLista(void) {
@@ -70,26 +78,34 @@ TipoPtNoLista* consultaLista(TipoPtNoLista* ptLista, char palavra[]) {
 
 // == Funcoes para manipulacao de linhas de string ==
 
+// Usadas para manipular strings, no caso, linhas de texto provenientes de arquivos texto
+// para preparar as palavras a serem inseridas em AVL
 
 
+// Funcao que dado ponteiro de LSE e um texto, separa o texto em palavras na LSE
+// atraves dos separadores informados para o trabalho
 TipoPtNoLista* separaStringPorSeparadores(TipoPtNoLista* ptLista, char texto[]) {
   char textoSaida[];
   char separadores[] = " 0123456789-.,&*%\?!;/'@\"$#=~><()][}{:\n\t_";
 
+  // Primeiro split dado na string de texto
   textoSaida = strtok(texto, separadores);
 
+  // Bota primeira palavra separada no comeco da LSE
   ptLista = insereInicio(ptLista, textoSaida);
 
   while (textoSaida != NULL) {
+    // Insere proxima palavra no fim da lista
     ptLista = insereFim(ptLista, textoSaida);
 
-    pch = strtok (NULL, " ,.-");
+    // Atualiza texto de saida com a proxima palavra separada
+    textoSaida = strtok(NULL, separadores);
   }
 
   return ptLista;
 }
 
-
+// Dado um texto, torna todo caractere lower case
 void tornaTextoLowerCase(char texto[]) {
     int i;
 
@@ -98,20 +114,24 @@ void tornaTextoLowerCase(char texto[]) {
     }
 }
 
-
-TipoPtNoLista* lerStopWords(char nomeArquivo[]) {
+// Dado um nome de arquivo de stopwords, le o arquivo e adiciona cada palavra
+// em uma LSE para uso na insercao de palavras na AVL
+TipoPtNoLista* lerStopWords(FILE *arq, char nomeArquivo[]) {
     int abriuArquivo;
-    char linha_arquivo[TAM_LINHA_STOPWORD];
+    char linha_arquivo[TAM_LINHA_STOPWORD]; // linha a ser lida do arquivo
 
-    TipoPtNoLista* listaStopwords = inicializaLista();
+    TipoPtNoLista* listaStopwords = inicializaLista(); // inicializa a LSE
 
-    abriuArquivo = abrirArquivo(arq);
+    abriuArquivo = abrirArquivo(arq, nomeArquivo); // abre arquivo
 
     if (abriuArquivo) {
+        // Le a linha do arquivo e armazena
         linha_arquivo = lerLinha(linha_arquivo, TAM_STOPWORD, arq);
 
+        // Insere a primeira stopword no comeco da LSE
         listaStopwords = insereInicio(listaStopwords, linha_arquivo);
 
+        // Enquanto o arquivo nao acaba, le uma linha (stopword) e adiciona no fim da LSE
         while(!feof(arq)) {
             linha_arquivo = lerLinha(linha_arquivo, TAM_STOPWORD, arq);
             listaStopwords = insereFim(listaStopwords, linha_arquivo);
@@ -124,16 +144,19 @@ TipoPtNoLista* lerStopWords(char nomeArquivo[]) {
 }
 
 
-//  == Funcoes base para AVL
+//  == Funcoes base para AVL ==
 
-// Retorna maior altura
-int maior(int a, int b){
+// Usadas como auxiliares do processo de leitura e comparacao dos textos
+
+
+// Retorna maior altura entre duas de um nodo
+int maior(int a, int b) {
     return (a > b) ? a : b;
 }
 
 
-// Dado um no de arvore, retorna sua altura
-int alturaNo(pNodoA *a){
+// Dado um no de arvore, retorna sua altura, armazenada no nodo
+int alturaNo(pNodoA *a) {
     if(a == NULL)
         return -1;
     else
@@ -141,18 +164,18 @@ int alturaNo(pNodoA *a){
 }
 
 
-// Retorna o fator de balanceamento de um nodo
-int fatorNo(pNodoA *a){
+// Retorna o fator de balanceamento de um nodo, podendo ser valor negativo
+int fatorNo(pNodoA *a) {
     if(no) {
-        return abs(alturaNo(a->esq) - alturaNo(a->dir));
+        return alturaNo(a->esq) - alturaNo(a->dir);
     }
 
     return 0;
 }
 
 
-// Realiza um rotacao a esquerda dado o nodo da arvore
-pNodoA* rotacaoEsquerda(pNodoA *a){
+// Realiza um rotacao a esquerda dado o nodo da AVL
+pNodoA* rotacaoEsquerda(pNodoA *a) {
     pNodoA *y, *f;
 
     y = a->dir; // y aponta para a subárvore direita da raiz a
@@ -170,8 +193,8 @@ pNodoA* rotacaoEsquerda(pNodoA *a){
 
 
 
-// Realiza um rotacao a direita dado o nodo da arvore
-pNodoA* rotacaoDireita(pNodoA *a){
+// Realiza um rotacao a direita dado o nodo da AVL
+pNodoA* rotacaoDireita(pNodoA *a) {
     pNodoA *y, *f;
 
     y = a->esq; // y aponta para a subárvore esquerda da raiz a
@@ -189,14 +212,14 @@ pNodoA* rotacaoDireita(pNodoA *a){
 
 
 // Efetua a rotacao dupla direita fazendo primeiro rotacao simples esquerda e depois direita
-pNodoA* rotacaoDuplaDireita(pNodoA *a){
+pNodoA* rotacaoDuplaDireita(pNodoA *a) {
     a->esq = rotacaoEsquerda(a->esq);
 
     return rotacaoDireita(a);
 }
 
 // Efetua a rotacao dupla esquerda fazendo primeiro rotacao simples direita e depois esquerda
-pNodoA* rotacaoDuplaEsquerda(pNodoA *a){
+pNodoA* rotacaoDuplaEsquerda(pNodoA *a) {
     a->dir = rotacaoDireita(a->dir);
 
     return rotacaoEsquerda(a);
@@ -204,8 +227,8 @@ pNodoA* rotacaoDuplaEsquerda(pNodoA *a){
 
 
 // Funcao que usa das rotacoes para balencear a AVL apos uma insercao ou remoca na mesma
-pNodoA* balancear(pNodoA *a){
-    int fator = fatorNo(a);
+pNodoA* balancear(pNodoA *a) {
+    int fator = fatorNo(a); // Busca fator do nodo
 
     // Rotação à esquerda
     if(fator < -1 && fatorNo(a->dir) <= 0)
@@ -228,22 +251,25 @@ pNodoA* balancear(pNodoA *a){
 
 // Recebe ponteiro da arvore e encontra palavra passado na mesma
 pNodoA* consultaAVL(pNodoA *arvore, char palavra[]) {
-    while (arvore!=NULL){
-        if (arvore->palavra == palavra) {
-            return arvore;
+    if (a==NULL) {
+        return NULL;
+    } else {
+        // Se encontrou a palavra, retorna o nodo
+        if (strcmp(a->info, palavra) == 0) {
+            return a;
         } else {
-            if (arvore->palavra > palavra)
-                arvore = arvore->esq;
+            // Se palavra do nodo atual for maior, vai para a esquerda procurar
+            if (strcmp(a->info, palavra) > 0)
+                return consultaABP2(a->esq,chave);
+            // Senao, vai para a direita
             else
-                arvore = arvore->dir;
+                return consultaABP2(a->dir,chave);
         }
     }
-
-    return NULL;
 }
 
 // Cria um novo no da AVL e retorna o mesmo
-pNodoA* criaNo(char palavra[]){
+pNodoA* criaNo(char palavra[]) {
     pNodoA *novo = malloc(sizeof(pNodoA));
 
     if(novo){
@@ -259,11 +285,14 @@ pNodoA* criaNo(char palavra[]){
 
 // Recebe ponteiro da arvore e palavra, inserindo a palavra na mesma usando do balanceamento em AVL
 void insereNodoAVL(pNodoA *arvore, char palavra[]) {
-    if(arvore == NULL) // árvore vazia
+    // Se arvore está vazia, cria um no
+    if(arvore == NULL) {
         return criaNo(palavra);
-    else{ // inserção será à esquerda ou à direita
+    } else {
+        // Se palavra menor que a do nodo atual, insere na esquerda
         if(strcmp(palavra, a->palavra) < 0)
             arvore->esq = insereNodoAVL(arvore->esq, palavra);
+        // Se for maior, insere a direita
         else if(strcmp(palavra, a->palavra) > 0)
             arvore->dir = insereNodoAVL(arvore->dir, palavra);
         else
@@ -273,7 +302,7 @@ void insereNodoAVL(pNodoA *arvore, char palavra[]) {
     // Recalcula a altura de todos os nós entre a raiz e o novo nó inserido
     arvore->altura = maior(alturaNo(arvore->esq), alturaNo(arvore->dir)) + 1;
 
-    // verifica a necessidade de rebalancear a árvore
+    // Verifica a necessidade de rebalancear a árvore e balanceia se preciso
     arvore = balancear(arvore);
 
     return arvore;
@@ -284,37 +313,43 @@ void insereNodoAVL(pNodoA *arvore, char palavra[]) {
 
 
 // Dado ponteiro de AVL e uma palavra, verifica se a mesma ainda nao foi inserida
-// e nao eh uma stopword para inserir a palavra na AVL
+// e nao é uma stopword para inserir a palavra na AVL
 void inserePalavraAVL(pNodoA *arvore, char palavra[]) {
-    TipoPtNoLista *listaStopwords = lerStopWords(ARQUIVO_STOPWORDS);
+    FILE *arqStopwords = NULL;
 
-    TipoPtNoLista *palavraStopword = consultaLista(listaStopwords, palavra);
-    pNodoA *nodoExistente = consultaAVL(arvore, palavra);
+    TipoPtNoLista *listaStopwords = lerStopWords(arqStopwords, ARQUIVO_STOPWORDS); // busca stopwords
 
+    TipoPtNoLista *palavraStopword = consultaLista(listaStopwords, palavra); // busca palavra na lista de stopwords
+    pNodoA *nodoExistente = consultaAVL(arvore, palavra); // procura se palavra ja existe na AVL
+
+    // Se a palavra nao é stopword e ainda nao foi inserida (é distinta), adiciona na AVL
     if(!palavraStopword && !nodoExistente) {
         insereNodoAVL(arvore, palavra);
     }
 }
 
 
-// Dado nome de arquivo e ponteiro de arvore, percorre cada linha do arquivo de texto
+// Dado ponteiro de arquivo e ponteiro de arvore, percorre cada linha do arquivo de texto
 // tornando cada caractere minusculo e sem separadores, inserindo cada palavra na AVL
 // conforme regras da funcao auxiliar chamada
-pNodoA* lerArquivoTexto(char nomeArquivo[], pNodoA *arvore) {
+pNodoA* converterArquivoTextoParaAVL(FILE *arq, char nomeArq[], pNodoA *arvore) {
     int abriuArquivo;
-    char linha_arquivo[TAM_LINHA_STOPWORD];
-    TipoPtNoLista* listaPalavrasAtual = InicializaLista();
+    char linha_arquivo[TAM_LINHA_STOPWORD]; // linha do arquivo a ser lida
+    TipoPtNoLista* listaPalavrasAtual = InicializaLista(); // LSE para armazenar as palavras da linha lida
 
-    abriuArquivo = abrirArquivo(arq);
+    abriuArquivo = abrirArquivo(arq, nomeArq); // abre arquivo
 
     if (abriuArquivo) {
+        // Enquanto o arquivo nao acabar
         while(!feof(arq)) {
-            linha_arquivo = lerLinha(linha_arquivo, TAM_LINHA_TXT, arq);
+            linha_arquivo = lerLinha(linha_arquivo, TAM_LINHA_TXT, arq); // le a linha
 
-            tornaTextoLowerCase(linha_arquivo);
-            listaPalavrasAtual = separaStringPorSeparadores(listaPalavrasAtual, linha_arquivo);
+            tornaTextoLowerCase(linha_arquivo); // deixa todos os caracteres em caixa baixa
+            listaPalavrasAtual = separaStringPorSeparadores(listaPalavrasAtual, linha_arquivo); // separa palavras por separadores
 
+            // Enquanto houverem palavras da linha atual na LSE
             while(listaPalavrasAtual->prox) {
+                // Verifica e insere palavra (se for o caso) na AVL
                 inserePalavraAVL(arvore, listaPalavrasAtual->palavra);
             }
         }
@@ -323,6 +358,87 @@ pNodoA* lerArquivoTexto(char nomeArquivo[], pNodoA *arvore) {
     fclose(arq);
 }
 
+
+// Funcao que recebe um ponteiro de arvore e percorre a mesma contando
+// quantos nodos existem de forma recursiva (conta palavras distintas pois nao sao inseridas palavras repetidas)
+int contaPalavrasDistintas(pNodoA *a) {
+    if(a) {
+       return contaPalavrasDistintas(a->esq) + contaPalavrasDistintas(a->dir) + 1;
+    }
+
+    return 0;
+}
+
+// Dado ponteiros para duas AVLs, compara quantas palavras em comum existem entre ambas arvores
+int contaPalavrasDistintasInterseccao(pNodoA *a1, pNodoA *a2) {
+    pNodoA* nodoPalavraA2; // declaracao de nodo da palavra que pode ou nao existir na AVL 2
+
+    // Se nao houver AVL 1, retorna 0
+    if (!a1) {
+        return 0;
+    }
+
+    // Se existe AVL 2, continua
+    if(a2) {
+        nodoPalavraA2 = consulvaAVL(a2, a1->palavra); // busca palavra atual da AVL 1 na AVL 2
+
+        // Se existe a palavra na AVL 2, soma 1 no total e conta as demais palavras de forma recursiva
+        if(nodoPalavraA2) {
+            return contaPalavrasDistintasInterseccao(a1->esq, a2) + contaPalavrasDistintasInterseccao(a1->dir, a2) + 1;
+        // Senao, apenas conta as demais palavras de forma recursiva sem somar 1
+        } else {
+            return contaPalavrasDistintasInterseccao(a1->esq, a2) + contaPalavrasDistintasInterseccao(a1->dir, a2);
+        }
+    }
+
+    // Retorna 0 como retorno base
+    return 0;
+}
+
+// Dadas duas AVLs e nomes de dois arquivos, calcula a similaridade de Jaccard para elas
+void calculaJaccard(pNodoA *a1, char nomeArq1[], pNodoA *a2, char nomeArq2[]) {
+    int totalPalavrasDistintasA1 = contaPalavrasDistintas(a1); // total de palavras distintas na AVL 1
+    int totalPalavrasDistintasA2 = contaPalavrasDistintas(a2); // total de palavras distintas na AVL 2
+
+    int totalPalavrasInterseccao = contaPalavrasDistintasInterseccao(a1, a2); // total de palavras em comum
+
+    // Calcula a similaridade conforme expressao da mesma
+    int totalUniaoPalavras = (totalPalavrasDistintasA1 + totalPalavrasDistintasA2 - totalPalavrasInterseccao);
+    float similaridade = (float)(totalPalavrasInterseccao / uniaoPalavras);
+
+    printf("%s = %d palavras distintas\n", nomeArq1, totalPalavrasDistintasA1);
+    printf("%s = %d palavras distintas\n", nomeArq2, totalPalavrasDistintasA2);
+
+    printf("Intersecao = %d\n", totalPalavrasInterseccao);
+    printf("Uniao = %d\n", totalUniaoPalavras);
+
+    printf("Jaccard = %.2f\n", similaridade);
+}
+
+
+// Dados dois ponteiro de arquivos texto e seus nomes, transforma
+// o conteudo de ambos em AVLs e calcula a similaridade de Jaccard para elas
+void imprimeJaccardTextos(FILE *arq1, char nomeArq1[], FILE *arq2, char nomeArq2[]) {
+    clock_t inicioTempo = clock();
+
+    // Declara AVLs
+    pNodoaA arvore1;
+    pNodoaA arvore2;
+
+    // Atribui AVLs geradas a partir dos arquivos
+    arvore1 = converterArquivoTextoParaAVL(arq1, nomeArq1, arvore1);
+    arvore2 = converterArquivoTextoParaAVL(arq2, nomeArq2, arvore2);
+
+    // Calcula a similaridade
+    calculaJaccard(arvore1, nomeArq1, arvore2, nomeArq2);
+
+    clock_t fimTempo = clock();
+
+    double tempoExecucao = (double)(fimTempo - inicioTempo) / CLOCKS_PER_SEC;
+    int constanteMilisegundo = 1000;
+
+    printf("Tempo: .5f ms", tempoExecucao * constanteMilisegundo);
+}
 
 
 
