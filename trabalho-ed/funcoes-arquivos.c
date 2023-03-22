@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 int abrirArquivo(FILE *arq, char nome[]) {
     arq = fopen(nome, "r+");
@@ -13,26 +12,10 @@ int abrirArquivo(FILE *arq, char nome[]) {
     }
 }
 
-int gravarLinha(char texto[], FILE *arq) {
+char* lerLinha(char texto[], int tamString, FILE *arq, char nomeArq[]) {
     int abriu_arquivo;
 
-    abriu_arquivo = abrirArquivo(arq);
-
-    if (abriu_arquivo) {
-        fputs(texto, arq);
-        fclose(arq);
-
-        return 1;
-    }
-
-    fclose(arq);
-    return 0;
-}
-
-char[] lerLinha(char texto[], int tamString, FILE *arq) {
-    int abriu_arquivo;
-
-    abriu_arquivo = abrirArquivo(arq);
+    abriu_arquivo = abrirArquivo(arq, nomeArq);
 
     if (abriu_arquivo) {
         return fgets(texto, tamString, arq);

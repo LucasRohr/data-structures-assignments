@@ -91,7 +91,7 @@ pNodoA* consultaAVL(pNodoA *arvore, char palavra[]);
 pNodoA* criaNo(char palavra[]);
 
 // Recebe ponteiro da arvore e palavra, inserindo a palavra na mesma usando do balanceamento em AVL
-void insereNodoAVL(pNodoA *arvore, char palavra[]);
+pNodoA* insereNodoAVL(pNodoA *arvore, char palavra[]);
 
 
 

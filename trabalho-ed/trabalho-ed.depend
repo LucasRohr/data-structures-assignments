@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1679492153 source:/Users/lucasrohrcarreno/Documents/trabalho-ed/funcoes-arquivos.c
+	<stdio.h>
+	<string.h>
+
+1679453321 source:/Users/lucasrohrcarreno/Documents/trabalho-ed/main.c
+	<stdio.h>
+	<stdlib.h>
+	<locale.h>
+	<string.h>
+	"tad.h"
+	"tad-arquivos.h"
+
+1679493006 /Users/lucasrohrcarreno/Documents/trabalho-ed/tad.h
+
+1679491889 /Users/lucasrohrcarreno/Documents/trabalho-ed/tad-arquivos.h
+

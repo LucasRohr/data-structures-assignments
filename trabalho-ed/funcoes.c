@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "tad.h"
 #include "tad-arquivos.h"
@@ -8,6 +10,7 @@
 #define TAM_STOPWORD 30
 #define TAM_LINHA_STOPWORD 200
 #define TAM_LINHA_TXT 150
+#define TAM_SEPARADORES 40
 
 #define ARQUIVO_STOPWORDS "stopwords.txt"
 
@@ -18,7 +21,7 @@
 
 
 // Retorna valor default NULL como inicializador de um No
-TipoPtNo* inicializaLista(void) {
+TipoPtNoLista* inicializaLista(void) {
     return NULL;
 }
 
@@ -29,7 +32,7 @@ TipoPtNoLista* insereInicio(TipoPtNoLista* ptLista, char texto[]) {
 
     novo = (TipoPtNoLista*) malloc(sizeof(TipoPtNoLista));
 
-    novo->palavra = texto;
+    strcpy(texto, novo->palavra);
     novo->prox = ptLista;
 
     ptLista = novo;
@@ -45,7 +48,7 @@ TipoPtNoLista* insereFim(TipoPtNoLista* ptLista, char texto[]) {
 
     novo = (TipoPtNoLista*) malloc(sizeof(TipoPtNoLista));
 
-    novo->palavra = texto;
+    strcpy(texto, novo->palavra);
     novo->prox = NULL;
 
     if(ptaux) {
@@ -85,8 +88,8 @@ TipoPtNoLista* consultaLista(TipoPtNoLista* ptLista, char palavra[]) {
 // Funcao que dado ponteiro de LSE e um texto, separa o texto em palavras na LSE
 // atraves dos separadores informados para o trabalho
 TipoPtNoLista* separaStringPorSeparadores(TipoPtNoLista* ptLista, char texto[]) {
-  char textoSaida[];
-  char separadores[] = " 0123456789-.,&*%\?!;/'@\"$#=~><()][}{:\n\t_";
+  char *textoSaida;
+  char separadores[TAM_SEPARADORES] = " 0123456789-.,&*%\?!;/'@\"$#=~><()][}{:\n\t_";
 
   // Primeiro split dado na string de texto
   textoSaida = strtok(texto, separadores);
@@ -126,14 +129,14 @@ TipoPtNoLista* lerStopWords(FILE *arq, char nomeArquivo[]) {
 
     if (abriuArquivo) {
         // Le a linha do arquivo e armazena
-        linha_arquivo = lerLinha(linha_arquivo, TAM_STOPWORD, arq);
+        fgets(linha_arquivo, TAM_STOPWORD, arq);
 
         // Insere a primeira stopword no comeco da LSE
         listaStopwords = insereInicio(listaStopwords, linha_arquivo);
 
         // Enquanto o arquivo nao acaba, le uma linha (stopword) e adiciona no fim da LSE
         while(!feof(arq)) {
-            linha_arquivo = lerLinha(linha_arquivo, TAM_STOPWORD, arq);
+            fgets(linha_arquivo, TAM_STOPWORD, arq);
             listaStopwords = insereFim(listaStopwords, linha_arquivo);
         }
     }
@@ -166,7 +169,7 @@ int alturaNo(pNodoA *a) {
 
 // Retorna o fator de balanceamento de um nodo, podendo ser valor negativo
 int fatorNo(pNodoA *a) {
-    if(no) {
+    if(a) {
         return alturaNo(a->esq) - alturaNo(a->dir);
     }
 
@@ -201,7 +204,7 @@ pNodoA* rotacaoDireita(pNodoA *a) {
     f = y->dir; // f aponta para o filho direito de y
 
     y->dir = a; // o filho direito de y passa a ser a raiz a
-    r->esq = f; // o filho esquerdo de a passa a ser f
+    a->esq = f; // o filho esquerdo de a passa a ser f
 
     // recalcula a altura dos n—s que foram movimentados
     a->altura = maior(alturaNo(a->esq), alturaNo(a->dir)) + 1;
@@ -250,20 +253,20 @@ pNodoA* balancear(pNodoA *a) {
 }
 
 // Recebe ponteiro da arvore e encontra palavra passado na mesma
-pNodoA* consultaAVL(pNodoA *arvore, char palavra[]) {
+pNodoA* consultaAVL(pNodoA *a, char palavra[]) {
     if (a==NULL) {
         return NULL;
     } else {
         // Se encontrou a palavra, retorna o nodo
-        if (strcmp(a->info, palavra) == 0) {
+        if (strcmp(a->palavra, palavra) == 0) {
             return a;
         } else {
             // Se palavra do nodo atual for maior, vai para a esquerda procurar
-            if (strcmp(a->info, palavra) > 0)
-                return consultaABP2(a->esq,chave);
+            if (strcmp(a->palavra, palavra) > 0)
+                return consultaAVL(a->esq, palavra);
             // Senao, vai para a direita
             else
-                return consultaABP2(a->dir,chave);
+                return consultaAVL(a->dir, palavra);
         }
     }
 }
@@ -273,7 +276,7 @@ pNodoA* criaNo(char palavra[]) {
     pNodoA *novo = malloc(sizeof(pNodoA));
 
     if(novo){
-        novo->palavra = palavra;
+        strcpy(palavra, novo->palavra);
         novo->esq = NULL;
         novo->dir = NULL;
         novo->altura = 0;
@@ -284,19 +287,19 @@ pNodoA* criaNo(char palavra[]) {
 
 
 // Recebe ponteiro da arvore e palavra, inserindo a palavra na mesma usando do balanceamento em AVL
-void insereNodoAVL(pNodoA *arvore, char palavra[]) {
+pNodoA* insereNodoAVL(pNodoA *arvore, char palavra[]) {
     // Se arvore est‡ vazia, cria um no
     if(arvore == NULL) {
         return criaNo(palavra);
     } else {
         // Se palavra menor que a do nodo atual, insere na esquerda
-        if(strcmp(palavra, a->palavra) < 0)
+        if(strcmp(palavra, arvore->palavra) < 0)
             arvore->esq = insereNodoAVL(arvore->esq, palavra);
         // Se for maior, insere a direita
-        else if(strcmp(palavra, a->palavra) > 0)
+        else if(strcmp(palavra, arvore->palavra) > 0)
             arvore->dir = insereNodoAVL(arvore->dir, palavra);
         else
-            printf("\nErro de insercao\n", x);
+            printf("\nErro de insercao\n");
     }
 
     // Recalcula a altura de todos os n—s entre a raiz e o novo n— inserido
@@ -335,14 +338,14 @@ void inserePalavraAVL(pNodoA *arvore, char palavra[]) {
 pNodoA* converterArquivoTextoParaAVL(FILE *arq, char nomeArq[], pNodoA *arvore) {
     int abriuArquivo;
     char linha_arquivo[TAM_LINHA_STOPWORD]; // linha do arquivo a ser lida
-    TipoPtNoLista* listaPalavrasAtual = InicializaLista(); // LSE para armazenar as palavras da linha lida
+    TipoPtNoLista* listaPalavrasAtual = inicializaLista(); // LSE para armazenar as palavras da linha lida
 
     abriuArquivo = abrirArquivo(arq, nomeArq); // abre arquivo
 
     if (abriuArquivo) {
         // Enquanto o arquivo nao acabar
         while(!feof(arq)) {
-            linha_arquivo = lerLinha(linha_arquivo, TAM_LINHA_TXT, arq); // le a linha
+            fgets(linha_arquivo, TAM_LINHA_TXT, arq); // le a linha
 
             tornaTextoLowerCase(linha_arquivo); // deixa todos os caracteres em caixa baixa
             listaPalavrasAtual = separaStringPorSeparadores(listaPalavrasAtual, linha_arquivo); // separa palavras por separadores
@@ -356,6 +359,8 @@ pNodoA* converterArquivoTextoParaAVL(FILE *arq, char nomeArq[], pNodoA *arvore) 
     }
 
     fclose(arq);
+
+    return arvore;
 }
 
 
@@ -380,7 +385,7 @@ int contaPalavrasDistintasInterseccao(pNodoA *a1, pNodoA *a2) {
 
     // Se existe AVL 2, continua
     if(a2) {
-        nodoPalavraA2 = consulvaAVL(a2, a1->palavra); // busca palavra atual da AVL 1 na AVL 2
+        nodoPalavraA2 = consultaAVL(a2, a1->palavra); // busca palavra atual da AVL 1 na AVL 2
 
         // Se existe a palavra na AVL 2, soma 1 no total e conta as demais palavras de forma recursiva
         if(nodoPalavraA2) {
@@ -404,7 +409,7 @@ void calculaJaccard(pNodoA *a1, char nomeArq1[], pNodoA *a2, char nomeArq2[]) {
 
     // Calcula a similaridade conforme expressao da mesma
     int totalUniaoPalavras = (totalPalavrasDistintasA1 + totalPalavrasDistintasA2 - totalPalavrasInterseccao);
-    float similaridade = (float)(totalPalavrasInterseccao / uniaoPalavras);
+    float similaridade = (float)(totalPalavrasInterseccao / totalUniaoPalavras);
 
     printf("%s = %d palavras distintas\n", nomeArq1, totalPalavrasDistintasA1);
     printf("%s = %d palavras distintas\n", nomeArq2, totalPalavrasDistintasA2);
@@ -419,11 +424,13 @@ void calculaJaccard(pNodoA *a1, char nomeArq1[], pNodoA *a2, char nomeArq2[]) {
 // Dados dois ponteiro de arquivos texto e seus nomes, transforma
 // o conteudo de ambos em AVLs e calcula a similaridade de Jaccard para elas
 void imprimeJaccardTextos(FILE *arq1, char nomeArq1[], FILE *arq2, char nomeArq2[]) {
-    clock_t inicioTempo = clock();
+    clock_t inicioTempo, fimTempo;
+
+    inicioTempo = clock();
 
     // Declara AVLs
-    pNodoaA arvore1;
-    pNodoaA arvore2;
+    pNodoA *arvore1 = NULL;
+    pNodoA *arvore2 = NULL;
 
     // Atribui AVLs geradas a partir dos arquivos
     arvore1 = converterArquivoTextoParaAVL(arq1, nomeArq1, arvore1);
@@ -432,12 +439,12 @@ void imprimeJaccardTextos(FILE *arq1, char nomeArq1[], FILE *arq2, char nomeArq2
     // Calcula a similaridade
     calculaJaccard(arvore1, nomeArq1, arvore2, nomeArq2);
 
-    clock_t fimTempo = clock();
+    fimTempo = clock();
 
     double tempoExecucao = (double)(fimTempo - inicioTempo) / CLOCKS_PER_SEC;
     int constanteMilisegundo = 1000;
 
-    printf("Tempo: .5f ms", tempoExecucao * constanteMilisegundo);
+    printf("Tempo: .5%f ms", tempoExecucao * constanteMilisegundo);
 }
 
 
