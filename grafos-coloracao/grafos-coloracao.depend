@@ -1,0 +1,25 @@
+# depslib dependency file v1.0
+1679941997 source:c:\codeblocks\grafos-coloracao\fila.c
+	<stdio.h>
+	<conio.h>
+	<string.h>
+	<stdlib.h>
+	"fila.h"
+
+1679942153 c:\codeblocks\grafos-coloracao\fila.h
+
+1679945615 source:c:\codeblocks\grafos-coloracao\main.c
+	"tad.h"
+	<string.h>
+	<locale.h>
+
+1679945638 c:\codeblocks\grafos-coloracao\tad.h
+	<stdio.h>
+	<stdlib.h>
+	"fila.h"
+
+1679946175 source:c:\codeblocks\grafos-coloracao\funcoes.c
+	<stdio.h>
+	<stdlib.h>
+	"tad.h"
+
